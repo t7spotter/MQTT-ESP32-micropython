@@ -5,9 +5,9 @@ RELAY2_PIN = 15
 RELAY3_PIN = 14
 RELAY4_PIN = 27
 RELAY5_PIN = 26
-RELAY6_PIN = 25 
-RELAY7_PIN = 18 
-RELAY8_PIN = 19 
+RELAY6_PIN = 25
+RELAY7_PIN = 18
+RELAY8_PIN = 19
 
 relay1 = Pin(RELAY1_PIN, Pin.OUT)
 relay2 = Pin(RELAY2_PIN, Pin.OUT)
@@ -27,5 +27,12 @@ realys = [
     relay6,
     relay7,
     relay8,
-    ]
+]
 
+
+def all_relays(status: bool):
+    for relay in realys:
+        if status is True:
+            relay.value(1)
+        elif status is False:
+            relay.value(0)
