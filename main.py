@@ -1,5 +1,9 @@
+import urequests
 from machine import Pin
 from relays import *
+from enviorments import (
+    CHAT_ID,
+)
 
 LED_PIN = 2
 RGB_PIN = 22
@@ -24,3 +28,14 @@ topics_to_subscribe = {
 "MQTT_TOPIC_RELAY8": bytes(f"esp32/relay8", "utf-8"),
 "MQTT_TOPIC_RGB": bytes(f"esp32/rgb", "utf-8"),
 }
+
+def send_telegram_message(message):
+            url = "telegramapi.org" # add ypur telegram API endpoint
+            payload = {
+                # "bot_token": BOT_TOKEN,
+                "chat_id": CHAT_ID,
+                "message": message,
+            }
+            response = urequests.post(url, json=payload)
+            return response
+
