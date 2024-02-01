@@ -1,4 +1,5 @@
 import urequests
+import network
 from machine import Pin
 from neopixel import NeoPixel
 from time import sleep
@@ -6,6 +7,9 @@ import time
 from relays import *
 from enviorments import (
     CHAT_ID,
+    
+    WIFI_SSID,
+    WIFI_PASSWORD,
 )
 
 LED_PIN = 2
@@ -62,3 +66,33 @@ def neo_pixel(pin, R, G, B):
     np = NeoPixel(Pin(pin), 1)
     np[0] = (R, G, B)
     return np.write()
+
+wlan = network.WLAN(network.STA_IF)
+wlan.active(True)
+def connect_wifi():
+    
+    global wlan
+
+    tries = 0
+    while not wlan.isconnected():
+        try:
+            if not wlan.isconnected():
+                wlan.connect(WIFI_SSID, WIFI_PASSWORD)
+                print(f"\nTrying to connect {WIFI_SSID} Wi-Fi...")
+                tries += 1
+                sleep(5)
+                
+            if wlan.isconnected():
+                print(f"Connected to the {WIFI_SSID} Wi-Fi after {tries} tries")
+                sleep(0.1)
+                send_telegram_message(f"Connected to the {WIFI_SSID} Wi-Fi after {tries} tries")
+                blink(3)
+                
+                sleep(0.1)
+                
+                return wlan
+            
+        except Exception as e:
+            tries += 1
+            print(f"Error connecting to Wi-Fi: {e} \nReconnecting to Wi-Fi...")
+            time.sleep(20)
