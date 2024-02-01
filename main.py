@@ -1,5 +1,7 @@
 import urequests
 from machine import Pin
+from time import sleep
+import time
 from relays import *
 from enviorments import (
     CHAT_ID,
@@ -39,3 +41,10 @@ def send_telegram_message(message):
             response = urequests.post(url, json=payload)
             return response
 
+
+def toggle_en_pin(gpio_pin):
+        """ It's push the EN (board reboot) button """
+        en_pin = Pin(gpio_pin, Pin.OUT)
+        en_pin.value(1)
+        time.sleep(0.1)
+        en_pin.value(0)
