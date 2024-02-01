@@ -1,5 +1,6 @@
 import urequests
 from machine import Pin
+from neopixel import NeoPixel
 from time import sleep
 import time
 from relays import *
@@ -56,3 +57,8 @@ def blink(number_of_blinkings):
         sleep(0.15)
         led.off()
         sleep(0.15)
+        
+def neo_pixel(pin, R, G, B):
+    np = NeoPixel(Pin(pin), 1)
+    np[0] = (R, G, B)
+    return np.write()
