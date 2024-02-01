@@ -1,0 +1,3 @@
+"MQTT_TOPIC_RESET": bytes(f"esp32/reset", "utf-8"),
+"MQTT_TOPIC_REMIND": bytes(f"esp32/remind", "utf-8"),
+"MQTT_TOPIC_CURRENT": bytes(f"esp32/current", "utf-8"),

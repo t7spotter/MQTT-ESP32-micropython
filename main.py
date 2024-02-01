@@ -48,3 +48,11 @@ def toggle_en_pin(gpio_pin):
         en_pin.value(1)
         time.sleep(0.1)
         en_pin.value(0)
+        
+def blink(number_of_blinkings):
+    led = Pin(LED_PIN, Pin.OUT)
+    for _ in range(number_of_blinkings):
+        led.on()
+        sleep(0.15)
+        led.off()
+        sleep(0.15)
