@@ -51,7 +51,6 @@ def send_telegram_message(message):
             response = urequests.post(url, json=payload)
             return response
 
-
 def toggle_en_pin(gpio_pin):
         """ It's push the EN (board reboot) button """
         en_pin = Pin(gpio_pin, Pin.OUT)
@@ -71,6 +70,28 @@ def neo_pixel(pin, R, G, B):
     np = NeoPixel(Pin(pin), 1)
     np[0] = (R, G, B)
     return np.write()
+
+def rgb_string_to_rgb(rgb_string):
+    try:
+        # Extract numerical values from the RGB string
+        rgb_values_str = rgb_string[3:-1].split(',')
+        rgb_values = []
+
+        for value_str in rgb_values_str:
+            # Remove non-numeric characters and convert to integer
+            value = int(''.join(filter(str.isdigit, value_str.strip())))
+            value = max(0, min(value, 255))
+            rgb_values.append(value)
+
+        # If only two values are provided, assume the third as 0 (e.g., "rgb(0, 255, 191)")
+        while len(rgb_values) < 3:
+            rgb_values.append(0)
+
+        return tuple(rgb_values)
+
+    except Exception as e:
+        print(f"Error parsing RGB string: {e}, Input: {rgb_string}")
+        raise ValueError("Error processing RGB values")
 
 wlan = network.WLAN(network.STA_IF)
 wlan.active(True)
@@ -102,7 +123,6 @@ def connect_wifi():
             print(f"Error connecting to Wi-Fi: {e} \nReconnecting to Wi-Fi...")
             time.sleep(20)
             
-            
 def connect_mqtt():
     print("Connecting to broker...")
     send_telegram_message(("Connecting to broker..."))
@@ -128,7 +148,6 @@ def connect_mqtt():
     neo_pixel(22, 100, 200, 0)
     sleep(0.5)
     return mqtt_client
-
 
 def publish_mqtt_message(my_message, my_topic):
     # MQTT Broker settings
@@ -167,7 +186,6 @@ def remind_task():
             minutes_to_do_task = 4.5
             seconds_to_do_task = int(minutes_to_do_task * 60)
             sleep(seconds_to_do_task)
-            
             
 current_topics_status = {}
 def on_message(topic, msg):
@@ -282,6 +300,15 @@ def on_message(topic, msg):
                 relay8.value(0)
                 send_telegram_message(f"- New message\n- topic: {topic}\n- message: {msg}")
             current_topics_status["RELAY8"] = msg
+            
+        elif topic == topics_to_subscribe["MQTT_TOPIC_RGB"]:
+            try:
+                # Convert the RGB message to RGB values
+                rgb_values = rgb_string_to_rgb(msg.decode())
+                neo_pixel(RGB_PIN, *rgb_values)
+                send_telegram_message(f"- New message\n- topic: {topic}\n- message: LED color set to:\n- R:{rgb_values[0]}\n- G:{rgb_values[1]}\n- B:{rgb_values[2]}")
+            except ValueError as e:
+                print(f"Error processing RGB values: {e}")
     except Exception as e:
         send_telegram_message(f"Error: unexpected message! {msg} {e}")
         sleep(1)
