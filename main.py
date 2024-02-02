@@ -1,7 +1,10 @@
 import urequests
 import network
+import gc
+import _thread
 from machine import Pin
 from neopixel import NeoPixel
+from umqtt.simple import MQTTClient
 from time import sleep
 import time
 from relays import *
@@ -10,6 +13,8 @@ from enviorments import (
     
     WIFI_SSID,
     WIFI_PASSWORD,
+    
+    BROKER_PORT,
 )
 
 LED_PIN = 2
@@ -96,3 +101,188 @@ def connect_wifi():
             tries += 1
             print(f"Error connecting to Wi-Fi: {e} \nReconnecting to Wi-Fi...")
             time.sleep(20)
+            
+            
+def connect_mqtt():
+    print("Connecting to broker...")
+    send_telegram_message(("Connecting to broker..."))
+    sleep(0.5)
+    mqtt_client = MQTTClient("client_id1", "test.mosquitto.org", port=BROKER_PORT) # Add your own
+    mqtt_client.set_callback(on_message)
+    mqtt_client.connect()
+    sleep(0.5)
+    
+    for topic in topics_to_subscribe:
+        mqtt_client.subscribe(topics_to_subscribe[topic])
+    
+    gc.collect()
+    sleep(0.5)
+    blink(4)
+    sleep(0.1)
+    
+    _thread.start_new_thread(remind_task, ())
+    
+    sleep(0.1)
+    print("Connected to MQTT broker")
+    send_telegram_message("Connected to MQTT broker")
+    neo_pixel(22, 100, 200, 0)
+    sleep(0.5)
+    return mqtt_client
+
+
+def publish_mqtt_message(my_message, my_topic):
+    # MQTT Broker settings
+    broker_address = "test.mosquitto.org" # MQTT broker address
+    client_id = "client@test" # MQTT client id
+    port = 1883 # MQTT port number
+
+    topic = my_topic
+    message = my_message
+
+    try:
+        # Connect to the MQTT broker
+        client = MQTTClient(client_id, broker_address, port)
+        client.connect()
+
+        # Publish the message to the specified topic
+        client.publish(topic, message)
+
+    except Exception as e:
+        print("Error:", e)
+
+    finally:
+        # Disconnect from the MQTT broker, even if an exception occurs
+        try:
+            client.disconnect()
+        except:
+            pass
+
+def remind_task():
+        while True:
+            
+            publish_mqtt_message(b"remind", topics_to_subscribe["MQTT_TOPIC_REMIND"])
+            print("Reminded")
+            blink(2)
+            
+            minutes_to_do_task = 4.5
+            seconds_to_do_task = int(minutes_to_do_task * 60)
+            sleep(seconds_to_do_task)
+            
+            
+current_topics_status = {}
+def on_message(topic, msg):
+    try:
+        print(f"- New message\n- topic: {topic}\n- message: {msg}")
+        gc.collect()
+        
+        if topic == topics_to_subscribe["MQTT_TOPIC_LED"]:
+            if msg == b"on":
+                led.value(1)
+                send_telegram_message(f"- New message\n- topic: {topic}\n- message: {msg}")
+            elif msg == b"off":
+                led.value(0)
+                send_telegram_message(f"- New message\n- topic: {topic}\n- message: {msg}")
+            current_topics_status["LED"] = msg
+            
+        elif topic == topics_to_subscribe["MQTT_TOPIC_BUZZER"]:
+            if msg == b"on":
+                buzzer.value(1)
+                send_telegram_message(f"- New message\n- topic: {topic}\n- message: {msg}")
+            elif msg == b"off":
+                buzzer.value(0)
+                send_telegram_message(f"- New message\n- topic: {topic}\n- message: {msg}")
+            current_topics_status["BUZZER"] = msg
+        
+        elif topic == topics_to_subscribe["MQTT_TOPIC_RELAYS"]:
+            if msg == b"on":
+                all_relays(True)
+                sleep(0.1)
+                send_telegram_message(f"- New message\n- topic: {topic}\n- message: {msg}")
+            elif msg == b"off":
+                all_relays(False)
+                sleep(0.1)
+                send_telegram_message(f"- New message\n- topic: {topic}\n- message: {msg}")
+            current_topics_status["RELAY1"] = msg
+            current_topics_status["RELAY2"] = msg
+            current_topics_status["RELAY3"] = msg
+            current_topics_status["RELAY4"] = msg
+            current_topics_status["RELAY5"] = msg
+            current_topics_status["RELAY6"] = msg
+            current_topics_status["RELAY7"] = msg
+            current_topics_status["RELAY8"] = msg
+            
+        elif topic == topics_to_subscribe["MQTT_TOPIC_RELAY1"]:
+            if msg == b"on":
+                relay1.value(1)
+                send_telegram_message(f"- New message\n- topic: {topic}\n- message: {msg}")
+            elif msg == b"off":
+                relay1.value(0)
+                send_telegram_message(f"- New message\n- topic: {topic}\n- message: {msg}")
+            current_topics_status["RELAY1"] = msg
+            
+        elif topic == topics_to_subscribe["MQTT_TOPIC_RELAY2"]:
+            if msg == b"on":
+                relay2.value(1)
+                send_telegram_message(f"- New message\n- topic: {topic}\n- message: {msg}")
+            elif msg == b"off":
+                relay2.value(0)
+                send_telegram_message(f"- New message\n- topic: {topic}\n- message: {msg}")
+            current_topics_status["RELAY2"] = msg
+                
+        elif topic == topics_to_subscribe["MQTT_TOPIC_RELAY3"]:
+            if msg == b"on":
+                relay3.value(1)
+                send_telegram_message(f"- New message\n- topic: {topic}\n- message: {msg}")
+            elif msg == b"off":
+                relay3.value(0)
+                send_telegram_message(f"- New message\n- topic: {topic}\n- message: {msg}")
+            current_topics_status["RELAY3"] = msg
+            
+        elif topic == topics_to_subscribe["MQTT_TOPIC_RELAY4"]:
+            if msg == b"on":
+                relay4.value(1)
+                send_telegram_message(f"- New message\n- topic: {topic}\n- message: {msg}")
+            elif msg == b"off":
+                relay4.value(0)
+                send_telegram_message(f"- New message\n- topic: {topic}\n- message: {msg}")
+            current_topics_status["RELAY4"] = msg
+            
+        elif topic == topics_to_subscribe["MQTT_TOPIC_RELAY5"]:
+            if msg == b"on":
+                relay5.value(1)
+                send_telegram_message(f"- New message\n- topic: {topic}\n- message: {msg}")
+            elif msg == b"off":
+                relay5.value(0)
+                send_telegram_message(f"- New message\n- topic: {topic}\n- message: {msg}")
+            current_topics_status["RELAY5"] = msg
+
+        elif topic == topics_to_subscribe["MQTT_TOPIC_RELAY6"]:
+            if msg == b"on":
+                relay6.value(1)
+                send_telegram_message(f"- New message\n- topic: {topic}\n- message: {msg}")
+            elif msg == b"off":
+                relay6.value(0)
+                send_telegram_message(f"- New message\n- topic: {topic}\n- message: {msg}")
+            current_topics_status["RELAY6"] = msg
+            
+        elif topic == topics_to_subscribe["MQTT_TOPIC_RELAY7"]:
+            if msg == b"on":
+                relay7.value(1)
+                send_telegram_message(f"- New message\n- topic: {topic}\n- message: {msg}")
+            elif msg == b"off":
+                relay7.value(0)
+                send_telegram_message(f"- New message\n- topic: {topic}\n- message: {msg}")
+            current_topics_status["RELAY7"] = msg
+    
+        elif topic == topics_to_subscribe["MQTT_TOPIC_RELAY8"]:
+            if msg == b"on":
+                relay8.value(1)
+                send_telegram_message(f"- New message\n- topic: {topic}\n- message: {msg}")
+            elif msg == b"off":
+                relay8.value(0)
+                send_telegram_message(f"- New message\n- topic: {topic}\n- message: {msg}")
+            current_topics_status["RELAY8"] = msg
+    except Exception as e:
+        send_telegram_message(f"Error: unexpected message! {msg} {e}")
+        sleep(1)
+        print(f"- unexpected message! {msg} {e}")
