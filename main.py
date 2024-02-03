@@ -313,3 +313,14 @@ def on_message(topic, msg):
         send_telegram_message(f"Error: unexpected message! {msg} {e}")
         sleep(1)
         print(f"- unexpected message! {msg} {e}")
+        
+
+neo_pixel(RGB_PIN, 0, 0, 0)
+
+# Connect to Wi-Fi
+wifi = connect_wifi()
+sleep(0.5)
+
+if wlan.isconnected():
+    mqtt = connect_mqtt()
+    sleep(0.2)
