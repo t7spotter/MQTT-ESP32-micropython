@@ -324,3 +324,47 @@ sleep(0.5)
 if wlan.isconnected():
     mqtt = connect_mqtt()
     sleep(0.2)
+    
+# main loop
+while True:
+    try:
+        if mqtt is not None:
+            mqtt.wait_msg()
+            sleep(1)
+        else:
+            pass
+
+    except Exception as e:
+        sleep(0.2)
+        if "[Errno 104] ECONNRESET" in e:
+            sleep(0.2)
+            print(f"{e} triggered\nGPIO reset ...")
+            send_telegram_message(f"{e} triggered\nGPIO reset ...")
+            sleep(0.5)
+            toggle_en_pin(23)
+        else:
+            sleep(0.1)
+            neo_pixel(22, 0, 0, 0)
+            sleep(0.1)
+            gc.collect()
+            sleep(1)
+            print(f"- Error checking MQTT messages: {e}")
+            send_telegram_message(f"- Error checking MQTT messages: {e}")
+            sleep(0.25)
+            print("reconnecting to broker...")
+            send_telegram_message("reconnecting to broker...")
+            while not mqtt:
+                try:
+                    mqtt = connect_mqtt()
+                except Exception as e:
+                    print(f"213000 handling:\n {e}")
+                    send_telegram_message(f"213000 handling:\n{e}") 
+    except:       # Exception as e:
+        # sleep(0.2)
+        # print(f"whole exception triggered:\n Error")
+        # send_telegram_message(f"Whole exception triggered:\nError: {e}")
+        # gc.collect()
+        # sleep(0.5)
+        # send_telegram_message(f"Last status was:\n{current_topics_status}")
+        # sleep(0.5)
+        toggle_en_pin(23)
