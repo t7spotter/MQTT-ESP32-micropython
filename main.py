@@ -2,7 +2,7 @@ import urequests
 import network
 import gc
 import _thread
-from machine import Pin
+from machine import Pin, Timer
 from neopixel import NeoPixel
 from umqtt.simple import MQTTClient
 from time import sleep
@@ -17,6 +17,8 @@ from enviorments import (
     
     BROKER_PORT,
 )
+
+timer = Timer(0)
 
 led = Pin(Pins.LED_PIN, Pin.OUT)
 rgb = Pin(Pins.RGB_PIN, Pin.OUT)
@@ -136,10 +138,7 @@ def connect_mqtt():
     sleep(0.5)
     blink(4)
     sleep(0.1)
-    
-    _thread.start_new_thread(remind_task, ())
-    
-    sleep(0.1)
+
     print("Connected to MQTT broker")
     send_telegram_message("Connected to MQTT broker")
     neo_pixel(22, 100, 200, 0)
@@ -173,16 +172,11 @@ def publish_mqtt_message(my_message, my_topic):
         except:
             pass
 
-def remind_task():
-        while True:
-            
-            publish_mqtt_message(b"remind", topics_to_subscribe["MQTT_TOPIC_REMIND"])
-            print("Reminded")
-            blink(2)
-            
-            minutes_to_do_task = 4.5
-            seconds_to_do_task = int(minutes_to_do_task * 60)
-            sleep(seconds_to_do_task)
+def remind_task(timer):
+    publish_mqtt_message(b"remind", topics_to_subscribe["MQTT_TOPIC_REMIND"])
+    print("Reminded")
+    blink(2)
+
             
 current_topics_status = {}
 def on_message(topic, msg):
@@ -322,12 +316,14 @@ if wlan.isconnected():
     mqtt = connect_mqtt()
     sleep(0.2)
     
+    REMIND_IN_MS = int(4.53 * 60 * 1000)    # miliseconds
+    timer.init(mode=Timer.PERIODIC, period=REMIND_IN_MS, callback=remind_task)
+    
 # main loop
 while True:
     try:
         if mqtt is not None:
             mqtt.wait_msg()
-            sleep(1)
         else:
             pass
 
@@ -338,7 +334,7 @@ while True:
             print(f"{e} triggered\nGPIO reset ...")
             send_telegram_message(f"{e} triggered\nGPIO reset ...")
             sleep(0.5)
-            toggle_en_pin(23)
+            toggle_en_pin(Pins.EN_RESTART_PIN)
         else:
             sleep(0.1)
             neo_pixel(22, 0, 0, 0)
@@ -356,12 +352,5 @@ while True:
                 except Exception as e:
                     print(f"213000 handling:\n {e}")
                     send_telegram_message(f"213000 handling:\n{e}") 
-    except:       # Exception as e:
-        # sleep(0.2)
-        # print(f"whole exception triggered:\n Error")
-        # send_telegram_message(f"Whole exception triggered:\nError: {e}")
-        # gc.collect()
-        # sleep(0.5)
-        # send_telegram_message(f"Last status was:\n{current_topics_status}")
-        # sleep(0.5)
-        toggle_en_pin(23)
+    except:
+        toggle_en_pin(Pins.EN_RESTART_PIN)
