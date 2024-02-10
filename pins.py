@@ -1,0 +1,21 @@
+class Pins:
+    
+    RELAY1_PIN = 13
+    RELAY2_PIN = 15
+    RELAY3_PIN = 14
+    RELAY4_PIN = 27
+    RELAY5_PIN = 26
+    RELAY6_PIN = 25
+    RELAY7_PIN = 18
+    RELAY8_PIN = 19
+
+    LED_PIN = 2
+    RGB_PIN = 4
+    BUZZER_PIN = 5
+
+    BUTTON_PIN_1 = 21
+    BUTTON_PIN_2 = 22
+    BUTTON_PIN_3 = 32
+    BUTTON_PIN_4 = 33
+
+    EN_RESTART_PIN = 23
