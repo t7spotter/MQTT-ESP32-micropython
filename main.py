@@ -8,6 +8,7 @@ from umqtt.simple import MQTTClient
 from time import sleep
 import time
 from relays import *
+from pins import Pins
 from enviorments import (
     CHAT_ID,
     
@@ -17,13 +18,9 @@ from enviorments import (
     BROKER_PORT,
 )
 
-LED_PIN = 2
-RGB_PIN = 22
-BUZZER_PIN = 5
-
-led = Pin(LED_PIN, Pin.OUT)
-rgb = Pin(RGB_PIN, Pin.OUT)
-buzzer = Pin(BUZZER_PIN, Pin.OUT)
+led = Pin(Pins.LED_PIN, Pin.OUT)
+rgb = Pin(Pins.RGB_PIN, Pin.OUT)
+buzzer = Pin(Pins.BUZZER_PIN, Pin.OUT)
 
 
 topics_to_subscribe = {
@@ -59,7 +56,7 @@ def toggle_en_pin(gpio_pin):
         en_pin.value(0)
         
 def blink(number_of_blinkings):
-    led = Pin(LED_PIN, Pin.OUT)
+    led = Pin(Pins.LED_PIN, Pin.OUT)
     for _ in range(number_of_blinkings):
         led.on()
         sleep(0.15)
@@ -305,7 +302,7 @@ def on_message(topic, msg):
             try:
                 # Convert the RGB message to RGB values
                 rgb_values = rgb_string_to_rgb(msg.decode())
-                neo_pixel(RGB_PIN, *rgb_values)
+                neo_pixel(Pins.RGB_PIN, *rgb_values)
                 send_telegram_message(f"- New message\n- topic: {topic}\n- message: LED color set to:\n- R:{rgb_values[0]}\n- G:{rgb_values[1]}\n- B:{rgb_values[2]}")
             except ValueError as e:
                 print(f"Error processing RGB values: {e}")
@@ -315,7 +312,7 @@ def on_message(topic, msg):
         print(f"- unexpected message! {msg} {e}")
         
 
-neo_pixel(RGB_PIN, 0, 0, 0)
+neo_pixel(Pins.RGB_PIN, 0, 0, 0)
 
 # Connect to Wi-Fi
 wifi = connect_wifi()
