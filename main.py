@@ -177,7 +177,60 @@ def remind_task(timer):
     print("Reminded")
     blink(2)
 
-            
+
+# -------------- MANUAL RELAYS CONTROLL -------------- #
+relay1_state = 0
+relay2_state = 0
+relay3_state = 0
+relay4_state = 0
+
+button1 = Pin(Pins.BUTTON_PIN_2, Pin.IN, Pin.PULL_UP)
+button2 = Pin(Pins.BUTTON_PIN_4, Pin.IN, Pin.PULL_UP)
+button3 = Pin(Pins.BUTTON_PIN_3, Pin.IN, Pin.PULL_UP)
+button4 = Pin(Pins.BUTTON_PIN_1, Pin.IN, Pin.PULL_UP)
+
+def manual_relays_toggle():
+    global relay1_state, relay2_state, relay3_state, relay4_state, button4
+    while True:
+        button_state_1 = button1.value()
+        button_state_2 = button2.value()
+        button_state_3 = button3.value()
+        button_state_4 = button4.value()
+
+        if button_state_1 == 0:
+            relay1_state = 1 - relay1_state
+            relay1.value(relay1_state)
+            if relay1_state == 1:
+                current_topics_status["RELAY1"] = "m on"
+            elif relay1_state == 0:
+                current_topics_status["RELAY1"] = "m off"
+        
+        elif button_state_2 == 0:
+            relay2_state = 1 - relay2_state
+            relay2.value(relay2_state)
+            if relay2_state == 1:
+                current_topics_status["RELAY2"] = "m on"
+            elif relay2_state == 0:
+                current_topics_status["RELAY2"] = "m off"            
+        
+        elif button_state_3 == 0:
+            relay3_state = 1 - relay3_state
+            relay3.value(relay3_state)
+            if relay3_state == 1:
+                current_topics_status["RELAY3"] = "m on"
+            elif relay3_state == 0:
+                current_topics_status["RELAY3"] = "m off"
+
+        elif button_state_4 == 0:
+            relay4_state = 1 - relay4_state
+            relay4.value(relay4_state)
+            if relay4_state == 1:
+                current_topics_status["RELAY4"] = "m on"
+            elif relay4_state == 0:
+                current_topics_status["RELAY4"] = "m off"
+                
+        sleep(0.3)
+         
 current_topics_status = {}
 def on_message(topic, msg):
     try:
